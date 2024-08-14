@@ -2,13 +2,6 @@ import { useState } from "react";
 import "./App.css";
 import Box from "./component/Box";
 
-//1. 박스 2개(타이틀, 사진, 결과값)
-//2. 가위 바위 보 버튼이 있다.
-//3. 버튼을 클릭하면 클릭한 값이 박스에 보임
-//4. 컴퓨터는 랜덤하게 아이템 선택이 된다.
-//5. 3~4번의 결과를 가지고 누가 이겼는지 승패를 따진다.
-//6. 승패 결과에 따라 테두리 색이 바뀐다(이기면-초록,지면,빨강,비기면-검정)
-
 const choice = {
   rock: {
     name: "Rock",
@@ -24,23 +17,95 @@ const choice = {
   },
 };
 
+function IntroPage({ onStartGame }) {
+  return (
+    <div className="intro-page">
+      <h1>가위바위보 게임</h1>
+      <div className="intro-icons">
+        <span role="img" aria-label="scissors">
+          ✌️
+        </span>
+        <span role="img" aria-label="rock">
+          ✊
+        </span>
+        <span role="img" aria-label="paper">
+          🖐️
+        </span>
+      </div>
+      <p>컴퓨터와 대결하는 흥미진진한 가위바위보 게임!</p>
+      <p>당신의 선택은?</p>
+      <button onClick={onStartGame}>게임 시작</button>
+    </div>
+  );
+}
+
 function App() {
+  const [showIntro, setShowIntro] = useState(true);
   const [userSelect, setUserSelect] = useState(null);
+  const [computerSelect, setComputerSelect] = useState(null);
+  const [userResult, setUserResult] = useState("");
+  const [computerResult, setComputerResult] = useState("");
+
+  const startGame = () => {
+    setShowIntro(false);
+  };
 
   const play = (userChoice) => {
     setUserSelect(choice[userChoice]);
+    const computerChoice = randomChoice();
+    setComputerSelect(computerChoice);
+    const userOutcome = judgement(choice[userChoice], computerChoice);
+    setUserResult(userOutcome);
+    setComputerResult(getComputerResult(userOutcome));
   };
+
+  const judgement = (user, computer) => {
+    console.log("user", user, "computer", computer);
+
+    if (user.name === computer.name) {
+      return "tie";
+    } else if (user.name === "Rock") {
+      return computer.name === "Scissors" ? "win" : "lose";
+    } else if (user.name === "Scissors") {
+      return computer.name === "Paper" ? "win" : "lose";
+    } else if (user.name === "Paper") {
+      return computer.name === "Rock" ? "win" : "lose";
+    }
+  };
+
+  const randomChoice = () => {
+    let itemArray = Object.keys(choice);
+    let randomItem = Math.floor(Math.random() * itemArray.length);
+    let final = itemArray[randomItem];
+    return choice[final];
+  };
+
+  const getComputerResult = (userResult) => {
+    if (userResult === "tie") return "tie";
+    return userResult === "win" ? "lose" : "win";
+  };
+
   return (
-    <div>
-      <div className="main">
-        <Box title="You" item={userSelect} />
-        {/* <Box title="computer" /> */}
-      </div>
-      <div className="main">
-        <button onClick={() => play("scissors")}>가위</button>
-        <button onClick={() => play("rock")}>바위</button>
-        <button onClick={() => play("paper")}>보</button>
-      </div>
+    <div className="container">
+      {showIntro ? (
+        <IntroPage onStartGame={startGame} />
+      ) : (
+        <div className="game-area">
+          <div className="main">
+            <Box title="You" item={userSelect} result={userResult} />
+            <Box
+              title="Computer"
+              item={computerSelect}
+              result={computerResult}
+            />
+          </div>
+          <div className="button-area">
+            <button onClick={() => play("scissors")}>가위</button>
+            <button onClick={() => play("rock")}>바위</button>
+            <button onClick={() => play("paper")}>보</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
